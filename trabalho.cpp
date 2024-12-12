@@ -1,12 +1,13 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cstring>
 
 using namespace std;
 
 struct series{
 
-    char Nomeserie[30];
+    char nomeSerie[30];
     int ano;
     float nota;
     string genero;
@@ -15,7 +16,11 @@ struct series{
 
 };
 
-int main(){
+int carregarDados(){
+    int tamanho = 40;
+    int i = 0;
+    series* serie = new series[tamanho];
+    int continuar = 1;
 
     ifstream seriesCsv("series.csv");
 
@@ -31,31 +36,82 @@ int main(){
     int qntdSeries;
 
     seriesCsv >> qntdSeries;
-    
-    series serie[qntdSeries];
 
-    for(int i = 0; i < qntdSeries; i++){
-        char lixo;
-        seriesCsv.getline(serie[i].Nomeserie, 30, ',');
+    while(continuar == 1 && i < qntdSeries){
+        for (int contador = 0; contador < 40 && i < tamanho; contador++){
 
-        seriesCsv >> serie[i].ano;
+            char lixo;
+            seriesCsv.getline(serie[i].nomeSerie, 30, ',');
 
-        seriesCsv >> lixo;
+            seriesCsv >> serie[i].ano;
 
-        seriesCsv >> serie[i].nota;
+            seriesCsv >> lixo;
 
-        seriesCsv >> lixo;
+            seriesCsv >> serie[i].nota;
 
-        getline(seriesCsv, serie[i].genero, ',');
+            seriesCsv >> lixo;
 
-        
+            getline(seriesCsv, serie[i].genero, ',');
 
-        seriesCsv.getline(serie[i].diretor, 50);
-        
+            seriesCsv.getline(serie[i].diretor, 50);
 
-        cout << "Nome: " << serie[i].Nomeserie << ", Ano: " << serie[i].ano 
+            cout << i+1 << "Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
              << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
              << ", Diretor: " << serie[i].diretor << endl;
+
+            i++;
+
+        }
+
+        if(i >= qntdSeries){
+            cout << "fim do arquivo" << endl;
+            return 0;
+        }
+
+        cout << "Deseja continuar adicionando mais séries?" << endl;
+        cout << "1: continuar" << endl << "2: parar" << endl;
+        cin >> continuar;
+
+        if (continuar == 1 && i == tamanho) {
+            int novaCapacidade = tamanho + 10;
+            series* novaSerie = new series[novaCapacidade];
+
+            for(int j = 0; j < i; j++){
+                strcpy(novaSerie[j].nomeSerie, serie[j].nomeSerie);
+                novaSerie[j].ano = serie[j].ano;
+                novaSerie[j].nota = serie[j].nota;
+                novaSerie[j].genero = serie[j].genero;
+                strcpy(novaSerie[j].diretor, serie[j].diretor);
+                novaSerie[j].ranking = serie[j].ranking;
+            }
+
+            delete[] serie;
+            serie = novaSerie;
+            tamanho = novaCapacidade;
+        
+        }  
     }
+
+    delete[] serie;
+    return 0;
+}
+    
+int main(){
+    int escolha;
+
+    cout << "carregar dados: digite 1" << endl;  
+    
+    cin >> escolha;
+
+    switch (escolha)
+    {
+    case 1:
+        carregarDados();
+        break;   
+    default:
+        cout << "Opção inválida. Encerrando o programa." << endl;
+        break;
+    }
+
 
 }
