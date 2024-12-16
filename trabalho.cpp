@@ -16,26 +16,12 @@ struct series{
 
 };
 
-int carregarDados(){
+int carregarDados(ifstream& seriesCsv, int qntdSeries, series*& serie){
     int tamanho = 40;
     int i = 0;
-    series* serie = new series[tamanho];
+    
+
     int continuar = 1;
-
-    ifstream seriesCsv("series.csv");
-
-    if(!seriesCsv){
-        cout << "erro ao abrir o arquivo" << endl;
-        return 1;
-    }
-
-    string linha;
-
-    getline(seriesCsv, linha);
-
-    int qntdSeries;
-
-    seriesCsv >> qntdSeries;
 
     while(continuar == 1 && i < qntdSeries){
         for (int contador = 0; contador < 40 && i < tamanho; contador++){
@@ -92,26 +78,52 @@ int carregarDados(){
         }  
     }
 
-    delete[] serie;
     return 0;
+}
+
+void adicionarSerie(ifstream& seriesCsv, int qntdSeries, series* serie){
+    for(int i = 0; i < 100; i++){
+        cout << i+1 << "Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
+             << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
+             << ", Diretor: " << serie[i].diretor << endl;
+    }
 }
     
 int main(){
-    int escolha;
+    ifstream seriesCsv("series.csv");
 
-    cout << "carregar dados: digite 1" << endl;  
-    
-    cin >> escolha;
-
-    switch (escolha)
-    {
-    case 1:
-        carregarDados();
-        break;   
-    default:
-        cout << "Opção inválida. Encerrando o programa." << endl;
-        break;
+    if(!seriesCsv){
+        cout << "erro ao abrir o arquivo" << endl;
+        return 1;
     }
 
+    string linha;
 
+    getline(seriesCsv, linha);
+
+    int qntdSeries;
+
+    seriesCsv >> qntdSeries;
+
+    int escolha = 10;
+
+    series* serie = new series[40];
+
+    while(escolha != 0){
+        cout << "1. Carregar dados do arquivo" << endl;
+        cout << "2. Adicionar série manualmente" << endl;
+        cout << "0. sair" << endl;
+        cin >> escolha;
+
+        switch (escolha){
+        case 1:
+            carregarDados(seriesCsv, qntdSeries, serie);
+            break;
+        case 2:
+            adicionarSerie(seriesCsv, qntdSeries, serie);
+        default:
+            cout << "Opção inválida. Encerrando o programa." << endl;
+            break;
+        }
+    }
 }
