@@ -85,9 +85,7 @@ void adicionarSerie(ifstream& seriesCsv, int qntdSeries){
     series* todasSeries = new series[qntdSeries];
     int continuar = 1;
     int tamanho = qntdSeries + 1;
-    int contador = 0;
-    string genero;
-    int ano;
+    int contador = 0;series* serie = new series[40];
     float nota;
     char nome[30];
     char diretor[50];
@@ -190,6 +188,9 @@ void mostrarUmPedaco(ifstream& seriesCsv, int qntdSeries){
     }
 }
 int main(){
+
+    
+
     ifstream seriesCsv("series.csv");
 
     if(!seriesCsv){
@@ -205,6 +206,32 @@ int main(){
 
     seriesCsv >> qntdSeries;
 
+    series* serie = new series[qntdSeries];
+
+    char lixo;
+
+    for(int i = 0; i < qntdSeries; i++){
+        
+        seriesCsv.getline(serie[i].nomeSerie, 30, ',');
+
+        seriesCsv >> serie[i].ano;
+
+        seriesCsv >> lixo;
+
+        seriesCsv >> serie[i].nota;
+
+        seriesCsv >> lixo;
+
+        getline(seriesCsv, serie[i].genero, ',');
+
+        seriesCsv.getline(serie[i].diretor, 50);
+
+        cout << i+1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
+        << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
+        << ", Diretor: " << serie[i].diretor << endl;
+
+    }
+    
     int escolha = 10;
 
     while(escolha != 0){
