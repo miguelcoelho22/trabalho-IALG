@@ -12,14 +12,14 @@ struct series{
     float nota;
     string genero;
     char diretor[50];
-    int ranking;
 
 };
 
-int carregarDados(ifstream& seriesCsv, int qntdSeries, series*& serie){
+int carregarDados(ifstream& seriesCsv, int qntdSeries){
     int tamanho = 40;
     int i = 0;
     
+    series* serie = new series[40];
 
     int continuar = 1;
 
@@ -41,7 +41,7 @@ int carregarDados(ifstream& seriesCsv, int qntdSeries, series*& serie){
 
             seriesCsv.getline(serie[i].diretor, 50);
 
-            cout << i+1 << "Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
+            cout << i+1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
              << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
              << ", Diretor: " << serie[i].diretor << endl;
 
@@ -68,7 +68,6 @@ int carregarDados(ifstream& seriesCsv, int qntdSeries, series*& serie){
                 novaSerie[j].nota = serie[j].nota;
                 novaSerie[j].genero = serie[j].genero;
                 strcpy(novaSerie[j].diretor, serie[j].diretor);
-                novaSerie[j].ranking = serie[j].ranking;
             }
 
             delete[] serie;
@@ -78,17 +77,118 @@ int carregarDados(ifstream& seriesCsv, int qntdSeries, series*& serie){
         }  
     }
 
+    delete[] serie;
     return 0;
 }
 
-void adicionarSerie(ifstream& seriesCsv, int qntdSeries, series* serie){
-    for(int i = 0; i < 100; i++){
-        cout << i+1 << "Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
-             << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
-             << ", Diretor: " << serie[i].diretor << endl;
+void adicionarSerie(ifstream& seriesCsv, int qntdSeries){
+    series* todasSeries = new series[qntdSeries];
+    int continuar = 1;
+    int tamanho = qntdSeries + 1;
+    int contador = 0;
+    string genero;
+    int ano;
+    float nota;
+    char nome[30];
+    char diretor[50];
+
+    for(int i = 0; i < qntdSeries; i++){
+        char lixo;
+        seriesCsv.getline(todasSeries[i].nomeSerie, 30, ',');
+
+        seriesCsv >> todasSeries[i].ano;
+
+        seriesCsv >> lixo;
+
+        seriesCsv >> todasSeries[i].nota;
+
+        seriesCsv >> lixo;
+
+        getline(seriesCsv, todasSeries[i].genero, ',');
+
+        seriesCsv.getline(todasSeries[i].diretor, 50);
+    }
+
+        while(continuar == 1){
+             if(tamanho = qntdSeries){
+                int novoTamanho = qntdSeries + 1;
+                series* redimensionamento = new series[novoTamanho];
+
+                for(int i = 0; i < qntdSeries; i++){
+                    redimensionamento[i] = todasSeries[i];
+                }
+
+                delete[] todasSeries;
+                todasSeries = redimensionamento;
+
+                tamanho = novoTamanho;
+             }
+
+            cout << "digite o nome da serie:";
+            cin >> nome;
+            strcpy(todasSeries[qntdSeries].nomeSerie, nome);
+
+            cout << "digite o ano: ";
+            cin >> ano;
+            todasSeries[qntdSeries].ano = ano;
+
+            cout << "digite a nota: ";
+            cin >> nota;
+            todasSeries[qntdSeries].nota = nota;
+
+            cout << "digite o genero: ";
+            cin >> genero;
+            todasSeries[qntdSeries].genero = genero;
+
+            cout << "digite o diretor: ";
+            cin >> diretor;
+            strcpy(todasSeries[qntdSeries++].diretor, diretor);
+
+            cout << "deseja continuar?";
+            cin >> continuar;
+        }
+
+    for(int i = 0; i < tamanho; i++){
+        cout << i+1 << " Nome: " << todasSeries[i].nomeSerie << ", Ano: " << todasSeries[i].ano 
+             << ", Nota: " << todasSeries[i].nota << ", Gênero: " << todasSeries[i].genero 
+             << ", Diretor: " << todasSeries[i].diretor << endl;
+    }
+
+    delete[] todasSeries;
+}
+
+void mostrarUmPedaco(ifstream& seriesCsv, int qntdSeries){
+    series* todasSeries = new series[qntdSeries];
+    int inicio, termino;
+
+    for(int i = 0; i < qntdSeries; i++){
+        char lixo;
+        seriesCsv.getline(todasSeries[i].nomeSerie, 30, ',');
+
+        seriesCsv >> todasSeries[i].ano;
+
+        seriesCsv >> lixo;
+
+        seriesCsv >> todasSeries[i].nota;
+
+        seriesCsv >> lixo;
+
+        getline(seriesCsv, todasSeries[i].genero, ',');
+
+        seriesCsv.getline(todasSeries[i].diretor, 50);
+    }
+
+    cout << "digite o numero da serie que voce deseja começar: " << endl;
+    cin >> inicio;
+    cout << "digite o final: " << endl;
+    cin >> termino;
+
+    for(int i = inicio-1; i < termino; i++){
+        cout << i+1 << " Nome: " << todasSeries[i].nomeSerie << ", Ano: " << todasSeries[i].ano 
+             << ", Nota: " << todasSeries[i].nota << ", Gênero: " << todasSeries[i].genero 
+             << ", Diretor: " << todasSeries[i].diretor << endl;
     }
 }
-    
 int main(){
     ifstream seriesCsv("series.csv");
 
@@ -107,22 +207,25 @@ int main(){
 
     int escolha = 10;
 
-    series* serie = new series[40];
-
     while(escolha != 0){
         cout << "1. Carregar dados do arquivo" << endl;
         cout << "2. Adicionar série manualmente" << endl;
+        cout << "3. mostrar um pedaço do arquivo" << endl;
         cout << "0. sair" << endl;
         cin >> escolha;
 
         switch (escolha){
+        case 0:
+            cout << "saindo do programa..." << endl;
+            break;
         case 1:
-            carregarDados(seriesCsv, qntdSeries, serie);
+            carregarDados(seriesCsv, qntdSeries);
             break;
         case 2:
-            adicionarSerie(seriesCsv, qntdSeries, serie);
-        default:
-            cout << "Opção inválida. Encerrando o programa." << endl;
+            adicionarSerie(seriesCsv, qntdSeries);
+            break;
+        case 3:
+            mostrarUmPedaco(seriesCsv, qntdSeries);
             break;
         }
     }
