@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <cstring>
+#include <sstream>
 
 using namespace std;
 
@@ -16,13 +17,24 @@ struct series{
 };
 
 int carregarDados(series*& serie, int qntdSeries){
-    int tamanho = 40;
+    ifstream arquivoBinario("series.bin", ios::binary | ios::ate);    
+    if(arquivoBinario){
+        streamsize tamanho = arquivoBinario.tellg();// Calcula o número de elementos no arquivo binário
+        arquivoBinario.seekg(0, ios::beg);// Volta para o início do arquivo
+
+        arquivoBinario.read(reinterpret_cast<char *>(serie), tamanho);
+        
+
+        cout<<"Leitura binária realizada com sucesso!\n"<<endl;
+    
+
+    int tamanhoInicial = 40;
     int i = 0;
 
     int continuar = 1;
 
     while(continuar == 1 && i < qntdSeries){
-        for (int contador = 0; contador < 40 && i < tamanho; contador++){
+        for (int contador = 0; contador < 40 && i < tamanhoInicial; contador++){
 
             
             cout << i+1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
@@ -42,8 +54,8 @@ int carregarDados(series*& serie, int qntdSeries){
         cout << "1: continuar" << endl << "2: parar" << endl;
         cin >> continuar;
 
-        if (continuar == 1 && i == tamanho) {
-            int novaCapacidade = tamanho + 10;
+        if (continuar == 1 && i == tamanhoInicial) {
+            int novaCapacidade = tamanhoInicial + 10;
             series* novaSerie = new series[novaCapacidade];
 
             for(int j = 0; j < i; j++){
@@ -56,14 +68,16 @@ int carregarDados(series*& serie, int qntdSeries){
 
             delete[] serie;
             serie = novaSerie;
-            tamanho = novaCapacidade;
+            tamanhoInicial = novaCapacidade;
         
         }  
     }
+    }
 
     delete[] serie;
+    arquivoBinario.close();
     return 0;
-}
+}   
 
 void adicionarSerie(series*& serie, int qntdSeries){
     
@@ -140,13 +154,12 @@ void mostrarUmPedaco(series*& serie){
              << ", Diretor: " << serie[i].diretor << endl;
     }
 }
-int main(){
 
+void carregarDadosCsv(series*& serie){
     ifstream seriesCsv("series.csv");
 
     if(!seriesCsv){
         cout << "erro ao abrir o arquivo" << endl;
-        return 1;
     }
 
     string linha;
@@ -157,8 +170,10 @@ int main(){
 
     seriesCsv >> qntdSeries;
 
-    series* serie = new series[qntdSeries];
+    
+
     for (int i = 0; i < qntdSeries; i++){
+
         char lixo;
         seriesCsv.getline(serie[i].nomeSerie, 30, ',');
 
@@ -173,14 +188,64 @@ int main(){
         getline(seriesCsv, serie[i].genero, ',');
 
         seriesCsv.getline(serie[i].diretor, 50);
+
+        cout << i+1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
+             << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
+             << ", Diretor: " << serie[i].diretor << endl;
     }
+
+}
+
+void transformarCsvParaBinario(series*& serie){
+    ifstream seriesCsv("series.csv");
+    ofstream saidaBin("series.bin", ios::binary);
+
+    if(!seriesCsv){
+        cout << "arquivo nao encontrado" << endl;
+    }
+    string linha;
+
+    getline(seriesCsv, linha);
+
+    int qntdSeries;
+
+    seriesCsv >> qntdSeries;
+
+    for(int i = 0; i < qntdSeries; i++) {
+        char lixo;
+        seriesCsv.getline(serie[i].nomeSerie, 30, ',');
+
+        seriesCsv >> serie[i].ano;
+
+        seriesCsv >> lixo;
+
+        seriesCsv >> serie[i].nota;
+
+        seriesCsv >> lixo;
+
+        getline(seriesCsv, serie[i].genero, ',');
+
+        seriesCsv.getline(serie[i].diretor, 50);                  
+    }
+     for (int i = 0; i < qntdSeries; i++) {
+        saidaBin.write(reinterpret_cast<const char*>(&serie[i]), sizeof(series) * qntdSeries);
+    }
+
+    saidaBin.close();
+}
+
+int main(){
+    int qntdSeries = 100;
+    series* serie = new series[qntdSeries];
 
     int escolha = 10;
 
     while(escolha != 0){
-        cout << "1. Carregar dados do arquivo" << endl;
+        cout << "1. Carregar dados do arquivo tipado" << endl;
         cout << "2. Adicionar série manualmente" << endl;
         cout << "3. mostrar um pedaço do arquivo" << endl;
+        cout << "4. carregar dados do arquivo csv" << endl;
+        cout << "5. carregar arquivo binario a partir do csv" << endl;
         cout << "0. sair" << endl;
         cin >> escolha;
 
@@ -197,6 +262,12 @@ int main(){
         case 3:
             mostrarUmPedaco(serie);
             break;
-        }
+        case 4:
+            carregarDadosCsv(serie);
+            break;
+        case 5:
+            transformarCsvParaBinario(serie);
+            break;
     }
+}
 }
