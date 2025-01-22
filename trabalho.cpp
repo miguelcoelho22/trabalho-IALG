@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 #include <cstring>
-#include <sstream>
 
 using namespace std;
 
@@ -11,80 +10,119 @@ struct series{
     char nomeSerie[30];
     int ano;
     float nota;
-    string genero;
+    char genero[50];
     char diretor[50];
 
 };
 
-int carregarDados(series*& serie, int qntdSeries){
-    ifstream arquivoBinario("series.bin", ios::binary | ios::ate);    
-    if(arquivoBinario){
-        streamsize tamanho = arquivoBinario.tellg();// Calcula o número de elementos no arquivo binário
-        arquivoBinario.seekg(0, ios::beg);// Volta para o início do arquivo
+int carregarDados(series*& serie, int& qntdSeries) {
+    ifstream arquivoBinario("series.bin", ios::binary | ios::ate);
+    if (!arquivoBinario.is_open()) {
+        cout << "Erro ao abrir o arquivo binário." << endl;
+        return 1;
+    }
 
-        arquivoBinario.read(reinterpret_cast<char *>(serie), tamanho);
-        
+    // Calcula o número total de séries no arquivo binário
+    streamsize tamanho = arquivoBinario.tellg();
+    arquivoBinario.seekg(0, ios::beg);
+    qntdSeries = tamanho / sizeof(series);
 
-        cout<<"Leitura binária realizada com sucesso!\n"<<endl;
-    
+    if (tamanho % sizeof(series) != 0) {
+    cout << "O arquivo binário parece estar corrompido ou incompatível." << endl;
+    arquivoBinario.close();
+    return 1;
+}
 
     int tamanhoInicial = 40;
-    int i = 0;
+    serie = new series[tamanhoInicial];
 
+    // Lê os dados do arquivo binário até a quantidade inicial
+    arquivoBinario.read(reinterpret_cast<char*>(serie), tamanhoInicial * sizeof(series));
+
+    if (!arquivoBinario) {
+        cout << "Erro na leitura do arquivo." << endl;
+        delete[] serie;
+        return 1;
+    }
+
+    cout << "Leitura binária realizada com sucesso!" << endl;
+
+    int i = 0; // Número de séries exibidas
     int continuar = 1;
 
-    while(continuar == 1 && i < qntdSeries){
-        for (int contador = 0; contador < 40 && i < tamanhoInicial; contador++){
-
-            
-            cout << i+1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
-             << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
-             << ", Diretor: " << serie[i].diretor << endl;
-
+    // Exibição de dados e expansão dinâmica
+    while (continuar == 1 && i < qntdSeries) {
+        // Exibe as séries atualmente carregadas
+        for (int contador = 0; contador < 40 && i < tamanhoInicial && i < qntdSeries; contador++) {
+            cout << i + 1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano
+                 << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero
+                 << ", Diretor: " << serie[i].diretor << endl;
             i++;
-
         }
 
-        if(i >= qntdSeries){
-            cout << "fim do arquivo" << endl;
-            return 0;
+        // Verifica se todas as séries foram exibidas
+        if (i >= qntdSeries) {
+            cout << "Fim do arquivo." << endl;
+            continuar = 0;
         }
 
+        // Pergunta se o usuário deseja continuar
         cout << "Deseja continuar adicionando mais séries?" << endl;
         cout << "1: continuar" << endl << "2: parar" << endl;
+
         cin >> continuar;
 
-        if (continuar == 1 && i == tamanhoInicial) {
-            int novaCapacidade = tamanhoInicial + 10;
+        // Expande o vetor para exibir mais séries, caso o usuário queira
+        if (continuar == 1) {
+            int seriesRestantes = qntdSeries - i; // Séries restantes no arquivo
+
+            int novasSeries = min(10, seriesRestantes); // Lê no máximo 10 séries de cada vez
+
+            // Calcula a nova capacidade do vetor
+            int novaCapacidade = tamanhoInicial + novasSeries;
+
+            // Realoca a memória para o vetor expandido
             series* novaSerie = new series[novaCapacidade];
 
-            for(int j = 0; j < i; j++){
-                strcpy(novaSerie[j].nomeSerie, serie[j].nomeSerie);
-                novaSerie[j].ano = serie[j].ano;
-                novaSerie[j].nota = serie[j].nota;
-                novaSerie[j].genero = serie[j].genero;
-                strcpy(novaSerie[j].diretor, serie[j].diretor);
+            // Copia as séries antigas para o novo vetor
+            for (int j = 0; j < i; j++) {
+                novaSerie[j] = serie[j];
             }
 
+            // Atualiza o ponteiro de leitura do arquivo
+            arquivoBinario.seekg(i * sizeof(series), ios::beg);
+
+            // Lê as próximas séries do arquivo binário
+            arquivoBinario.read(reinterpret_cast<char*>(novaSerie + i), novasSeries * sizeof(series));
+
+            if (!arquivoBinario) {
+                cout << "Erro na leitura adicional do arquivo." << endl;
+                delete[] novaSerie;
+                delete[] serie;
+                return 1;
+            }
+
+            // Deleta o vetor antigo e aponta para o novo vetor expandido
             delete[] serie;
             serie = novaSerie;
             tamanhoInicial = novaCapacidade;
-        
-        }  
-    }
+        }
     }
 
-    delete[] serie;
     arquivoBinario.close();
     return 0;
-}   
+}
+
+
+
 
 void adicionarSerie(series*& serie, int qntdSeries){
     
     int continuar = 1;
     int tamanho = qntdSeries + 1;
     int contador = 0;
-    string genero;
+
+    char genero[50];
     int ano;
     float nota;
     char nome[30];
@@ -119,7 +157,7 @@ void adicionarSerie(series*& serie, int qntdSeries){
 
             cout << "digite o genero: ";
             cin >> genero;
-            serie[qntdSeries].genero = genero;
+            strcpy(serie[qntdSeries].genero, genero);
 
             cout << "digite o diretor: ";
             cin >> diretor;
@@ -185,7 +223,7 @@ void carregarDadosCsv(series*& serie){
 
         seriesCsv >> lixo;
 
-        getline(seriesCsv, serie[i].genero, ',');
+        seriesCsv.getline(serie[i].genero, 50, ',');
 
         seriesCsv.getline(serie[i].diretor, 50);
 
@@ -223,7 +261,7 @@ void transformarCsvParaBinario(series*& serie){
 
         seriesCsv >> lixo;
 
-        getline(seriesCsv, serie[i].genero, ',');
+        seriesCsv.getline(serie[i].genero, 50, ',');
 
         seriesCsv.getline(serie[i].diretor, 50);                  
     }
@@ -240,15 +278,11 @@ int main(){
 
     int escolha = 10;
 
-    while(escolha != 0){
+    cout << "escolha uma das opçoes para carregar o arquivo" << endl;
         cout << "1. Carregar dados do arquivo tipado" << endl;
-        cout << "2. Adicionar série manualmente" << endl;
-        cout << "3. mostrar um pedaço do arquivo" << endl;
-        cout << "4. carregar dados do arquivo csv" << endl;
-        cout << "5. carregar arquivo binario a partir do csv" << endl;
-        cout << "0. sair" << endl;
+        cout << "2. carregar dados do arquivo csv" << endl;
+        cout << "3. carregar arquivo binario a partir do csv" << endl;
         cin >> escolha;
-
         switch (escolha){
         case 0:
             cout << "saindo do programa..." << endl;
@@ -257,17 +291,32 @@ int main(){
             carregarDados(serie, qntdSeries);
             break;
         case 2:
-            adicionarSerie(serie, qntdSeries);
+            carregarDadosCsv(serie);
+            
             break;
         case 3:
-            mostrarUmPedaco(serie);
-            break;
-        case 4:
-            carregarDadosCsv(serie);
-            break;
-        case 5:
             transformarCsvParaBinario(serie);
+            break;
+            }
+
+    while(escolha != 0){
+        cout << "1. Adicionar série manualmente" << endl;
+        cout << "2. mostrar um pedaço do arquivo" << endl;
+        cout << "0. sair" << endl;
+        cin >> escolha;
+
+        switch (escolha){
+        case 0:
+            cout << "saindo do programa..." << endl;
+            break;
+        case 1:
+            adicionarSerie(serie, qntdSeries);
+            break;
+        case 2:
+            mostrarUmPedaco(serie);
             break;
     }
 }
+
+    delete[] serie;
 }
