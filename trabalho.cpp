@@ -15,7 +15,7 @@ struct series{
 
 };
 
-int carregarDados(series*& serie, int& qntdSeries) {
+int carregarDadosBinario(series*& serie, int& qntdSeries) {
     ifstream arquivoBinario("series.bin", ios::binary | ios::ate);
     if (!arquivoBinario.is_open()) {
         cout << "Erro ao abrir o arquivo binário." << endl;
@@ -25,13 +25,6 @@ int carregarDados(series*& serie, int& qntdSeries) {
     // Calcula o número total de séries no arquivo binário
     streamsize tamanho = arquivoBinario.tellg();
     arquivoBinario.seekg(0, ios::beg);
-    qntdSeries = tamanho / sizeof(series);
-
-    if (tamanho % sizeof(series) != 0) {
-    cout << "O arquivo binário parece estar corrompido ou incompatível." << endl;
-    arquivoBinario.close();
-    return 1;
-}
 
     int tamanhoInicial = 40;
     serie = new series[tamanhoInicial];
@@ -60,6 +53,7 @@ int carregarDados(series*& serie, int& qntdSeries) {
             i++;
         }
 
+       
         // Verifica se todas as séries foram exibidas
         if (i >= qntdSeries) {
             cout << "Fim do arquivo." << endl;
@@ -74,10 +68,9 @@ int carregarDados(series*& serie, int& qntdSeries) {
 
         // Expande o vetor para exibir mais séries, caso o usuário queira
         if (continuar == 1) {
-            int seriesRestantes = qntdSeries - i; // Séries restantes no arquivo
 
-            int novasSeries = min(10, seriesRestantes); // Lê no máximo 10 séries de cada vez
-
+            int novasSeries = 10;
+        
             // Calcula a nova capacidade do vetor
             int novaCapacidade = tamanhoInicial + novasSeries;
 
@@ -88,13 +81,9 @@ int carregarDados(series*& serie, int& qntdSeries) {
             for (int j = 0; j < i; j++) {
                 novaSerie[j] = serie[j];
             }
-
-            // Atualiza o ponteiro de leitura do arquivo
-            arquivoBinario.seekg(i * sizeof(series), ios::beg);
-
             // Lê as próximas séries do arquivo binário
             arquivoBinario.read(reinterpret_cast<char*>(novaSerie + i), novasSeries * sizeof(series));
-
+            
             if (!arquivoBinario) {
                 cout << "Erro na leitura adicional do arquivo." << endl;
                 delete[] novaSerie;
@@ -113,10 +102,16 @@ int carregarDados(series*& serie, int& qntdSeries) {
     return 0;
 }
 
+void listarSeries(series* serie, int qntdSeries){
+    for(int i = 0; i < qntdSeries; i++){
+        cout << i+1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
+             << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
+             << ", Diretor: " << serie[i].diretor << endl;
+    }
+}
 
 
-
-void adicionarSerie(series*& serie, int qntdSeries){
+void adicionarSerie(series*& serie, int& qntdSeries){
     
     int continuar = 1;
     int tamanho = qntdSeries + 1;
@@ -178,7 +173,7 @@ void adicionarSerie(series*& serie, int qntdSeries){
     delete[] serie;
 }
 
-void mostrarUmPedaco(series*& serie){
+void mostrarUmPedaco(series*& serie, int qntdSeries){
     int inicio, termino;
 
     cout << "digite o numero da serie que voce deseja começar: " << endl;
@@ -193,7 +188,7 @@ void mostrarUmPedaco(series*& serie){
     }
 }
 
-void carregarDadosCsv(series*& serie){
+void carregarDadosCsv(series*& serie, int qntdSeries){
     ifstream seriesCsv("series.csv");
 
     if(!seriesCsv){
@@ -203,8 +198,6 @@ void carregarDadosCsv(series*& serie){
     string linha;
 
     getline(seriesCsv, linha);
-
-    int qntdSeries;
 
     seriesCsv >> qntdSeries;
 
@@ -226,15 +219,13 @@ void carregarDadosCsv(series*& serie){
         seriesCsv.getline(serie[i].genero, 50, ',');
 
         seriesCsv.getline(serie[i].diretor, 50);
-
-        cout << i+1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano 
-             << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero 
-             << ", Diretor: " << serie[i].diretor << endl;
     }
+
+    listarSeries(serie, qntdSeries);
 
 }
 
-void transformarCsvParaBinario(series*& serie){
+void transformarCsvParaBinario(series*& serie, int &qntdSeries){
     ifstream seriesCsv("series.csv");
     ofstream saidaBin("series.bin", ios::binary);
 
@@ -244,8 +235,6 @@ void transformarCsvParaBinario(series*& serie){
     string linha;
 
     getline(seriesCsv, linha);
-
-    int qntdSeries;
 
     seriesCsv >> qntdSeries;
 
@@ -272,7 +261,143 @@ void transformarCsvParaBinario(series*& serie){
     saidaBin.close();
 }
 
+void mergePorAno(series* serie, int inicio, int meio, int fim){
+    int n1 = meio - inicio+1;
+    int n2 = fim - meio; 
+
+    series* esquerda = new series[n1];
+    series* direita = new series[n2];
+
+    for(int i = 0; i < n1; i++){
+        esquerda[i] = serie[inicio + i];}
+
+    for(int j = 0; j < n2; j++){
+        direita[j] = serie[meio + 1 + j];}
+
+     int i = 0, j = 0, k = inicio;
+
+    while(i < n1 && j < n2){
+        if(esquerda[i].ano <= direita[j].ano){
+            serie[k] = esquerda[i];
+            i++;
+        } 
+        else{
+            serie[k] = direita[j];
+            j++;
+        }
+        k++;
+    }
+
+    while(i < n1){
+        serie[k] = esquerda[i];
+        i++;
+        k++;
+    }
+
+    while(j < n2){
+        serie[k] = direita[j];
+        j++;
+        k++;
+    }
+
+    delete[] esquerda;
+    delete[] direita;
+}
+
+
+void mergeSortPorAno(series*& serie, int inicio,int fim) {
+    if(inicio < fim){
+        int meio = inicio + (fim - inicio) / 2;
+
+        mergeSortPorAno(serie, inicio, meio);
+        mergeSortPorAno(serie, meio + 1, fim);
+
+        mergePorAno(serie, inicio, meio, fim);
+    }
+}
+
+void mergePorNome(series* serie, int inicio, int meio, int fim){
+    int n1 = meio - inicio+1;
+    int n2 = fim - meio; 
+
+    series* esquerda = new series[n1];
+    series* direita = new series[n2];
+
+    for(int i = 0; i < n1; i++){
+        esquerda[i] = serie[inicio + i];}
+
+    for(int j = 0; j < n2; j++){
+        direita[j] = serie[meio + 1 + j];}
+
+     int i = 0, j = 0, k = inicio;
+
+    while(i < n1 && j < n2){
+        if(esquerda[i].nomeSerie <= direita[j].nomeSerie){
+            serie[k] = esquerda[i];
+            i++;
+        } 
+        else{
+            serie[k] = direita[j];
+            j++;
+        }
+        k++;
+    }
+
+    while(i < n1){
+        serie[k] = esquerda[i];
+        i++;
+        k++;
+    }
+
+    while(j < n2){
+        serie[k] = direita[j];
+        j++;
+        k++;
+    }
+
+    delete[] esquerda;
+    delete[] direita;
+}
+
+
+void mergeSortPorNome(series*& serie, int inicio,int fim) {
+    if(inicio < fim){
+        int meio = inicio + (fim - inicio) / 2;
+
+        mergeSortPorAno(serie, inicio, meio);
+        mergeSortPorAno(serie, meio + 1, fim);
+
+        mergePorAno(serie, inicio, meio, fim);
+    }
+}
+
+void BuscaBinariaRecursivaPorNome(series *series, int inicio, int fim ,char* nomeSerie) {
+    cout << inicio << " " << fim << endl;
+    if(inicio > fim){
+        
+    }
+
+    int meio = inicio + (fim - inicio) / 2;
+
+    if(series[meio].nomeSerie == nomeSerie){
+        cout << meio << endl;
+        cout << " Nome: " << series[meio].nomeSerie << ", Ano: " << series[meio].ano 
+             << ", Nota: " << series[meio].nota << ", Gênero: " << series[meio].genero 
+             << ", Diretor: " << series[meio].diretor << endl;
+    }
+
+    if(series[meio].nomeSerie < nomeSerie){
+        return BuscaBinariaRecursivaPorNome(series, meio + 1, fim, nomeSerie);
+    } 
+    else{
+        return BuscaBinariaRecursivaPorNome(series, inicio, meio - 1, nomeSerie);
+    }
+    
+    }
+
 int main(){
+
+    char* nomeSerie = new char[30];
     int qntdSeries = 100;
     series* serie = new series[qntdSeries];
 
@@ -288,21 +413,23 @@ int main(){
             cout << "saindo do programa..." << endl;
             break;
         case 1:
-            carregarDados(serie, qntdSeries);
+            carregarDadosBinario(serie, qntdSeries);
             break;
         case 2:
-            carregarDadosCsv(serie);
-            
+            carregarDadosCsv(serie, qntdSeries);
             break;
         case 3:
-            transformarCsvParaBinario(serie);
+            transformarCsvParaBinario(serie, qntdSeries);
             break;
-            }
-
+        }
     while(escolha != 0){
         cout << "1. Adicionar série manualmente" << endl;
         cout << "2. mostrar um pedaço do arquivo" << endl;
+        cout << "3. ordenacao por ano" << endl;
+        cout << "4. ordenaçao por nome" << endl;
+        cout << "5. busca por Nome" << endl;
         cout << "0. sair" << endl;
+
         cin >> escolha;
 
         switch (escolha){
@@ -313,8 +440,21 @@ int main(){
             adicionarSerie(serie, qntdSeries);
             break;
         case 2:
-            mostrarUmPedaco(serie);
+            mostrarUmPedaco(serie, qntdSeries);
             break;
+        case 3:
+            mergeSortPorAno(serie, 0, qntdSeries - 1);
+            listarSeries(serie, qntdSeries);
+            break;
+        case 4:
+            mergeSortPorNome(serie, 0, qntdSeries -1);
+            listarSeries(serie,qntdSeries);
+            break;
+        case 5: 
+            cout << "digite o nome da serie" << endl;
+            cin.getline(nomeSerie, 30);
+            BuscaBinariaRecursivaPorNome(serie, 0, 99, nomeSerie);
+           break;
     }
 }
 
