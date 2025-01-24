@@ -332,7 +332,7 @@ void mergePorNome(series* serie, int inicio, int meio, int fim){
      int i = 0, j = 0, k = inicio;
 
     while(i < n1 && j < n2){
-        if(esquerda[i].nomeSerie <= direita[j].nomeSerie){
+        if(strcmp(esquerda[i].nomeSerie, direita[j].nomeSerie) <= 0){
             serie[k] = esquerda[i];
             i++;
         } 
@@ -364,37 +364,57 @@ void mergeSortPorNome(series*& serie, int inicio,int fim) {
     if(inicio < fim){
         int meio = inicio + (fim - inicio) / 2;
 
-        mergeSortPorAno(serie, inicio, meio);
-        mergeSortPorAno(serie, meio + 1, fim);
+        mergeSortPorNome(serie, inicio, meio);
+        mergeSortPorNome(serie, meio + 1, fim);
 
-        mergePorAno(serie, inicio, meio, fim);
+        mergePorNome(serie, inicio, meio, fim);
     }
 }
 
-void BuscaBinariaRecursivaPorNome(series *series, int inicio, int fim ,char* nomeSerie) {
-    cout << inicio << " " << fim << endl;
+int BuscaBinariaRecursivaPorNome(series*& series, int inicio, int fim ,char* nomeSerie) {
+   
     if(inicio > fim){
-        
+        cout << "inicio maior que o fim" << endl;
+        return -1;
     }
 
     int meio = inicio + (fim - inicio) / 2;
 
-    if(series[meio].nomeSerie == nomeSerie){
+    if (strcmp(series[meio].nomeSerie, nomeSerie) == 0) {
         cout << meio << endl;
         cout << " Nome: " << series[meio].nomeSerie << ", Ano: " << series[meio].ano 
              << ", Nota: " << series[meio].nota << ", Gênero: " << series[meio].genero 
              << ", Diretor: " << series[meio].diretor << endl;
     }
 
-    if(series[meio].nomeSerie < nomeSerie){
-        return BuscaBinariaRecursivaPorNome(series, meio + 1, fim, nomeSerie);
-    } 
-    else{
+    else if (strcmp(series[meio].nomeSerie, nomeSerie) > 0){
         return BuscaBinariaRecursivaPorNome(series, inicio, meio - 1, nomeSerie);
+    }
+    else{
+        return BuscaBinariaRecursivaPorNome(series, meio + 1, fim, nomeSerie);
     }
     
     }
+void salvarEmCsv(series* serie, int qntdSeries){
+    ofstream saidaCsv("series.csv");
 
+    saidaCsv << "Ranking,Nome,Ano,Nota,Gênero,Diretor" << endl << qntdSeries << endl;
+
+    for(int i = 0; i < qntdSeries; i++){
+        saidaCsv << serie[i].nomeSerie << "," << serie[i].ano 
+             << "," << serie[i].nota << "," << serie[i].genero 
+             << "," << serie[i].diretor << endl;
+    }
+
+}
+
+void salvarEmBinario(series* serie, int qntdSeries){
+    ofstream saidaBin("series.bin");
+
+        saidaBin.write(reinterpret_cast<const char*>(serie), sizeof(series) * qntdSeries);
+        saidaBin.close();
+
+}
 int main(){
 
     char* nomeSerie = new char[30];
@@ -428,6 +448,8 @@ int main(){
         cout << "3. ordenacao por ano" << endl;
         cout << "4. ordenaçao por nome" << endl;
         cout << "5. busca por Nome" << endl;
+        cout << "6. listar series" << endl;
+        cout << "7. salvar em Csv" << endl;
         cout << "0. sair" << endl;
 
         cin >> escolha;
@@ -452,11 +474,30 @@ int main(){
             break;
         case 5: 
             cout << "digite o nome da serie" << endl;
-            cin.getline(nomeSerie, 30);
-            BuscaBinariaRecursivaPorNome(serie, 0, 99, nomeSerie);
+            cin >> nomeSerie;
+            mergeSortPorNome(serie, 0, qntdSeries -1);
+            BuscaBinariaRecursivaPorNome(serie, 0, qntdSeries - 1, nomeSerie);
            break;
+        case 6:
+            listarSeries(serie, qntdSeries);
+            break;
+        case 7:
+            salvarEmCsv(serie, qntdSeries);
+            cout << "arquivo Csv salvo com sucesso" << endl;
     }
 }
+
+    cout << "deseja salvar as alteraçoes?" << endl;
+    cout << "1: salvar" << endl << "2: nao salvar" << endl;
+    cin >> escolha;
+
+    if(escolha == 1){
+        salvarEmBinario(serie, qntdSeries);
+        cout << "arquivo Bin salvo com sucesso" << endl;
+    }
+    
+    //salvar -> sim -> binario com as alteraçoes
+     //   -> nao -> mantem o arquivo binario sem altaraçoes
 
     delete[] serie;
 }
