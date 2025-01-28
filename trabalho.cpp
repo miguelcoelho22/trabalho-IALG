@@ -110,7 +110,6 @@ void listarSeries(series* serie, int qntdSeries){
     }
 }
 
-
 void adicionarSerie(series*& serie, int& qntdSeries){
     
     int continuar = 1;
@@ -372,7 +371,7 @@ void mergeSortPorNome(series*& serie, int inicio,int fim) {
 }
 
 int BuscaBinariaRecursivaPorNome(series*& series, int inicio, int fim ,char* nomeSerie) {
-   
+    cout << inicio << fim << endl;
     if(inicio > fim){
         cout << "inicio maior que o fim" << endl;
         return -1;
@@ -381,10 +380,10 @@ int BuscaBinariaRecursivaPorNome(series*& series, int inicio, int fim ,char* nom
     int meio = inicio + (fim - inicio) / 2;
 
     if (strcmp(series[meio].nomeSerie, nomeSerie) == 0) {
-        cout << meio << endl;
         cout << " Nome: " << series[meio].nomeSerie << ", Ano: " << series[meio].ano 
              << ", Nota: " << series[meio].nota << ", Gênero: " << series[meio].genero 
              << ", Diretor: " << series[meio].diretor << endl;
+        return meio;
     }
 
     else if (strcmp(series[meio].nomeSerie, nomeSerie) > 0){
@@ -411,8 +410,35 @@ void salvarEmCsv(series* serie, int qntdSeries){
 void salvarEmBinario(series* serie, int qntdSeries){
     ofstream saidaBin("series.bin");
 
-        saidaBin.write(reinterpret_cast<const char*>(serie), sizeof(series) * qntdSeries);
+    for(int i = 0; i < qntdSeries; i++){
+        saidaBin.write(reinterpret_cast<const char*>(&serie[i]), sizeof(series) * qntdSeries);
+        }
         saidaBin.close();
+
+}
+
+void removerSerie(series*& serie, int& qntdSeries){
+    char* nome = new char[30];
+    cout << "digite o nome da serie que deseja remover" << endl;
+    cin >> nome;
+    mergeSortPorNome(serie, 0, qntdSeries-1);
+    int posicao = BuscaBinariaRecursivaPorNome(serie, 0, qntdSeries-1, nome);
+    cout << posicao << endl;
+    for (int i = posicao; i < qntdSeries - 1; ++i) {
+        serie[i] = serie[i + 1];
+    }
+
+     qntdSeries--;
+    series* novoVetor = new series[qntdSeries];
+    for (int i = 0; i < qntdSeries; ++i) {
+        novoVetor[i] = serie[i];
+    }
+
+    // Libera o vetor antigo e atualiza o ponteiro
+    delete[] serie;
+    serie = novoVetor;
+
+    cout << "Série removida com sucesso!" << endl;
 
 }
 int main(){
@@ -450,6 +476,7 @@ int main(){
         cout << "5. busca por Nome" << endl;
         cout << "6. listar series" << endl;
         cout << "7. salvar em Csv" << endl;
+        cout << "8. remover serie" << endl;
         cout << "0. sair" << endl;
 
         cin >> escolha;
@@ -476,14 +503,17 @@ int main(){
             cout << "digite o nome da serie" << endl;
             cin >> nomeSerie;
             mergeSortPorNome(serie, 0, qntdSeries -1);
-            BuscaBinariaRecursivaPorNome(serie, 0, qntdSeries - 1, nomeSerie);
-           break;
+            BuscaBinariaRecursivaPorNome(serie, 0, qntdSeries-1, nomeSerie);
+            break;
         case 6:
             listarSeries(serie, qntdSeries);
             break;
         case 7:
             salvarEmCsv(serie, qntdSeries);
             cout << "arquivo Csv salvo com sucesso" << endl;
+            break;
+        case 8:
+            removerSerie(serie, qntdSeries);
     }
 }
 
@@ -496,8 +526,5 @@ int main(){
         cout << "arquivo Bin salvo com sucesso" << endl;
     }
     
-    //salvar -> sim -> binario com as alteraçoes
-     //   -> nao -> mantem o arquivo binario sem altaraçoes
-
     delete[] serie;
 }
