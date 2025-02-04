@@ -58,13 +58,6 @@ int carregarDadosBinario(series*& serie, int& qntdSeries) {
             continuar = 0;
         }
 
-        // Pergunta ao usuário se deseja continuar
-        cout << "Deseja continuar adicionando mais séries?" << endl;
-        cout << "1: continuar" << endl << "2: parar" << endl;
-        cin >> continuar;
-
-        // Expande o vetor para carregar mais séries
-        if (continuar == 1) {
             int novasSeries = 10; // Quantidade de séries adicionais a serem carregadas
             int novaCapacidade = tamanhoInicial + novasSeries; // Nova capacidade do vetor
 
@@ -91,7 +84,7 @@ int carregarDadosBinario(series*& serie, int& qntdSeries) {
             serie = novaSerie;
             tamanhoInicial = novaCapacidade;
         }
-    }
+    
 
     arquivoBinario.close(); // Fecha o arquivo binário
     return 0;
@@ -162,13 +155,13 @@ void adicionarSerie(series*& serie, int& qntdSeries) {
     }
 
     // Exibe todas as séries após a adição
-    for (int i = 0; i < tamanho; i++) {
+    for (int i = 0; i < qntdSeries; i++) {
         cout << i + 1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano
              << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero
              << ", Diretor: " << serie[i].diretor << endl;
     }
 
-    delete[] serie; // Libera a memória alocada
+    delete[] serie; // Libera a memória alocada0
 }
 
 // Função para exibir um intervalo de séries
