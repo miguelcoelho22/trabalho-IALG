@@ -102,66 +102,58 @@ void listarSeries(series* serie, int qntdSeries) {
 // Função para adicionar uma nova série
 void adicionarSerie(series*& serie, int& qntdSeries) {
     int continuar = 1;
-    int tamanho = qntdSeries + 1;
-    int contador = 0;
-
-    char genero[50];
-    int ano;
-    float nota;
-    char nome[30];
-    char diretor[50];
 
     while (continuar == 1) {
-        if (tamanho == qntdSeries) {
-            int novoTamanho = qntdSeries + 1;
-            series* redimensionamento = new series[novoTamanho];
+        // Realoca memória para adicionar mais uma série
+        int novoTamanho = qntdSeries + 1;
+        series* redimensionamento = new series[novoTamanho];
 
-            // Copia as séries antigas para o novo vetor
-            for (int i = 0; i < qntdSeries; i++) {
-                redimensionamento[i] = serie[i];
-            }
-
-            delete[] serie; // Libera o vetor antigo
-            serie = redimensionamento; // Atualiza o ponteiro
-            tamanho = novoTamanho;
+        // Copia as séries antigas para o novo vetor
+        for (int i = 0; i < qntdSeries; i++) {
+            redimensionamento[i] = serie[i];
         }
+
+        delete[] serie; // Libera o vetor antigo
+        serie = redimensionamento; // Atualiza o ponteiro
+
+        cin.ignore(); // Limpa buffer antes de usar cin.getline()
 
         // Solicita os dados da nova série
         cout << "Digite o nome da série: ";
-        cin >> nome;
-        strcpy(serie[qntdSeries].nomeSerie, nome);
+        cin.getline(serie[qntdSeries].nomeSerie, 30);
 
         cout << "Digite o ano: ";
-        cin >> ano;
-        serie[qntdSeries].ano = ano;
+        cin >> serie[qntdSeries].ano;
+        cin.ignore(); // Limpa buffer após cin >>
 
         cout << "Digite a nota: ";
-        cin >> nota;
-        serie[qntdSeries].nota = nota;
+        cin >> serie[qntdSeries].nota;
+        cin.ignore(); // Limpa buffer após cin >>
 
         cout << "Digite o gênero: ";
-        cin >> genero;
-        strcpy(serie[qntdSeries].genero, genero);
+        cin.getline(serie[qntdSeries].genero, 50);
 
         cout << "Digite o diretor: ";
-        cin >> diretor;
-        strcpy(serie[qntdSeries++].diretor, diretor);
+        cin.getline(serie[qntdSeries].diretor, 50);
+
+        qntdSeries++; // Incrementa a quantidade de séries
 
         // Pergunta se o usuário deseja continuar
         cout << "Deseja continuar?" << endl;
         cout << "1: continuar" << endl;
         cout << "2: parar" << endl;
         cin >> continuar;
+        cin.ignore(); // Limpa o buffer após entrada numérica
     }
 
     // Exibe todas as séries após a adição
     for (int i = 0; i < qntdSeries; i++) {
-        cout << i + 1 << " Nome: " << serie[i].nomeSerie << ", Ano: " << serie[i].ano
-             << ", Nota: " << serie[i].nota << ", Gênero: " << serie[i].genero
+        cout << i + 1 << " - Nome: " << serie[i].nomeSerie
+             << ", Ano: " << serie[i].ano
+             << ", Nota: " << serie[i].nota
+             << ", Gênero: " << serie[i].genero
              << ", Diretor: " << serie[i].diretor << endl;
     }
-
-    delete[] serie; // Libera a memória alocada0
 }
 
 // Função para exibir um intervalo de séries
@@ -414,7 +406,6 @@ void removerSerie(series*& serie, int& qntdSeries) {
 
     if (posicao == -1) {
         cout << "Série não encontrada." << endl;
-        return;
     }
 
     // Remove a série do vetor
