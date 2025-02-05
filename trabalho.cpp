@@ -453,6 +453,7 @@ int main() {
             break;
         case 3:
             transformarCsvParaBinario(serie, qntdSeries);
+            listarSeries(serie, qntdSeries);
             break;
     }
 
