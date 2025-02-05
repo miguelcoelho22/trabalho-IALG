@@ -22,7 +22,6 @@ int carregarDadosBinario(series*& serie, int& qntdSeries) {
     }
 
     // Calcula o tamanho do arquivo e reposiciona o ponteiro para o início
-    streamsize tamanho = arquivoBinario.tellg();
     arquivoBinario.seekg(0, ios::beg);
 
     int tamanhoInicial = 40; // Tamanho inicial do vetor de séries
