@@ -55,36 +55,36 @@ int carregarDadosBinario(series*& serie, int& qntdSeries) {
         cout << "Deseja carregar mais 10 séries? (1 - Sim, 0 - Não): ";
         cin >> continuar;
 
-        if (continuar != 1) {
-            break; // Sai do loop se o usuário não quiser continuar
+        // Se o usuário não quiser continuar, o loop termina naturalmente
+        if (continuar == 0) {
+            continuar = 2; // Define um valor diferente de 1 para sair do loop
+        } else {
+            // Expande a memória para armazenar mais séries
+            int novasSeries = 10;
+            int novaCapacidade = qntdSeries + novasSeries;
+            series* novaSerie = new series[novaCapacidade];
+
+            // Copia as séries antigas para o novo vetor
+            for (int i = 0; i < qntdSeries; i++) {
+                novaSerie[i] = serie[i];
+            }
+
+            // Lê as próximas 10 séries do arquivo binário
+            arquivoBinario.read(reinterpret_cast<char*>(novaSerie + qntdSeries), novasSeries * sizeof(series));
+            int lidasAgora = arquivoBinario.gcount() / sizeof(series); // Quantidade real lida
+
+            // Atualiza ponteiros e valores somente se houve novas séries lidas
+            if (lidasAgora > 0) {
+                delete[] serie;
+                serie = novaSerie;
+                qntdSeries += lidasAgora;
+                cout << "Mais " << lidasAgora << " séries carregadas." << endl;
+            } else {
+                cout << "Fim do arquivo. Não há mais séries para carregar." << endl;
+                delete[] novaSerie;
+                continuar = 2; // Finaliza a leitura
+            }
         }
-
-        // Expande a memória para armazenar mais séries
-        int novasSeries = 10;
-        int novaCapacidade = qntdSeries + novasSeries;
-        series* novaSerie = new series[novaCapacidade];
-
-        // Copia as séries antigas para o novo vetor
-        for (int i = 0; i < qntdSeries; i++) {
-            novaSerie[i] = serie[i];
-        }
-
-        // Lê as próximas 10 séries do arquivo binário
-        arquivoBinario.read(reinterpret_cast<char*>(novaSerie + qntdSeries), novasSeries * sizeof(series));
-        int lidasAgora = arquivoBinario.gcount() / sizeof(series); // Quantidade real lida
-
-        if (lidasAgora == 0) {
-            cout << "Fim do arquivo. Não há mais séries para carregar." << endl;
-            delete[] novaSerie;
-            break;
-        }
-
-        // Atualiza ponteiros e valores
-        delete[] serie;
-        serie = novaSerie;
-        qntdSeries += lidasAgora;
-
-        cout << "Mais " << lidasAgora << " séries carregadas." << endl;
     }
 
     arquivoBinario.close(); // Fecha o arquivo binário
